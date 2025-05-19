@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Responder;
+use App\Http\Resources\ResponderResource;
 use App\Http\Requests\StoreResponderRequest;
 use App\Http\Requests\UpdateResponderRequest;
 use App\Models\Survey;
@@ -13,14 +13,13 @@ class ResponderController extends Controller
     /**
      *
      */
-    public function generate(Survey $survey)
+    public function generate(Survey $survey): ResponderResource
     {
         $responder = $survey->responders()->create([
-            'public_id' => Str::random(6),
             'type' => 'Normal'
         ]);
 
-        return $responder;
+        return new ResponderResource($responder);
     }
 
 }

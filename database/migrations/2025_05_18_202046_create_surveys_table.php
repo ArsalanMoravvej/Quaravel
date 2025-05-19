@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('surveys', function (Blueprint $table) {
             $table->id();
+            $table->string('public_id', 8)->unique()->index();
+            $table->foreignId('user_id')->constrained('users');
+            $table->string('title');
+            $table->enum('language', ['en', 'fa'])->default('fa');
+            $table->boolean('active')->default(false);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

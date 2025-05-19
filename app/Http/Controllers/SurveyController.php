@@ -13,7 +13,7 @@ class SurveyController extends Controller
      */
     public function index()
     {
-        //
+        return Survey::all();
     }
 
     /**
@@ -29,7 +29,7 @@ class SurveyController extends Controller
      */
     public function show(Survey $survey)
     {
-        //
+        return $survey;
     }
 
     /**

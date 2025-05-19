@@ -2,7 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Survey>
@@ -17,7 +19,11 @@ class SurveyFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'public_id' => Str::random(8),
+            'user_id' => User::factory(),
+            'title' => $this->faker->sentence(3, true),
+            'language' => $this->faker->randomElement(['fa', 'en']),
+            'active' => $this->faker->boolean(),
         ];
     }
 }

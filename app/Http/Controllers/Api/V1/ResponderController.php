@@ -1,12 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Resources\ResponderResource;
-use App\Http\Requests\StoreResponderRequest;
-use App\Http\Requests\UpdateResponderRequest;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\V1\ResponderResource;
 use App\Models\Survey;
-use Illuminate\Support\Str;
 
 class ResponderController extends Controller
 {

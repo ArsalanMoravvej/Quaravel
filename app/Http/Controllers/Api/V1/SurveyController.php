@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api\V1;
 
+use App\Http\Controllers\Controller;
+use App\Http\Requests\V1\StoreSurveyRequest;
+use App\Http\Requests\V1\UpdateSurveyRequest;
 use App\Models\Survey;
-use App\Http\Requests\StoreSurveyRequest;
-use App\Http\Requests\UpdateSurveyRequest;
 
 class SurveyController extends Controller
 {

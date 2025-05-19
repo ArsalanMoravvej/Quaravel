@@ -19,7 +19,6 @@ class SurveyFactory extends Factory
     public function definition(): array
     {
         return [
-            'public_id' => Str::random(8),
             'user_id' => User::factory(),
             'title' => $this->faker->sentence(3, true),
             'language' => $this->faker->randomElement(['fa', 'en']),

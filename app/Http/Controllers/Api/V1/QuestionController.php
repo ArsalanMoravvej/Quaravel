@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\QuestionType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\StoreQuestionRequest;
 use App\Http\Requests\V1\UpdateQuestionRequest;
 use App\Models\Question;
 use App\Models\Survey;
+use Illuminate\Support\Arr;
 
 class QuestionController extends Controller
 {
@@ -23,12 +25,26 @@ class QuestionController extends Controller
      */
     public function store(StoreQuestionRequest $request, Survey $survey)
     {
-//        $question = $survey->questions()->create(
-//            $request->validated()
-//        );
+        $data = $request->validated();
+        $options = Arr::pull($data, 'options'); // grabs and removes 'options' from $data
+
+        $question = $survey->questions()->create($data);
+
+        if (in_array($question->type, [
+            QuestionType::MultipleChoice,
+            QuestionType::DropDown,
+            QuestionType::Ranking,
+        ]))
+        {
+            foreach ($options as $optionText) {
+                $question->options()->create([
+                    'body' => $optionText,
+                    "is_visible" => true,
+                ]);
+            }
+        }
         return response()->json(
-            $request->validated()
-//          $question
+            $question->loadMissing('options')
         );
     }
 

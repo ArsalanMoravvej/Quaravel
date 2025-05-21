@@ -17,14 +17,12 @@ return new class extends Migration
             $table->foreignIdFor(Survey::class)->constrained()->cascadeOnDelete();
             $table->string('title', 1500);
             $table->unsignedTinyInteger('type');
-            $table->boolean('answer_required')->default(false);
 
-//            \App\Enums\QuestionType::OpinionScale
             // For QuestionType::Text
             $table->integer('answer_min_length')->nullable();
             $table->integer('answer_max_length')->nullable();
 
-            //For QuestionType::MultipleChoice
+            // For QuestionType::MultipleChoice
             $table->boolean('allow_multiple_select')->nullable();
             $table->integer('min_selectable_choices')->nullable();
             $table->integer('max_selectable_choices')->nullable();
@@ -33,9 +31,19 @@ return new class extends Migration
             $table->decimal('number_min_value', places: 3)->nullable();
             $table->decimal('number_max_value', places: 3)->nullable();
 
-            //For QuestionType::OpinionScale
+            // For QuestionType::OpinionScale & QuestionType::Rating
             $table->integer('steps')->nullable();
+
+            // For QuestionType::OpinionScale
             $table->boolean('start_from_zero')->nullable();
+            $table->string('left_label', 40)->nullable();
+            $table->string('center_label', 40)->nullable();
+            $table->string('right_label', 40)->nullable();
+
+            // Nullables
+            $table->boolean('alphabetical_order')->nullable();
+            $table->boolean('answer_required')->nullable()->default(false);
+            $table->boolean('randomized')->nullable();
 
             $table->softDeletes();
             $table->timestamps();

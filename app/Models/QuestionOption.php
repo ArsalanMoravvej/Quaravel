@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class TextAnswer extends Model
+class QuestionOption extends Model
 {
-    /** @use HasFactory<\Database\Factories\TextAnswerFactory> */
+    /** @use HasFactory<\Database\Factories\QuestionOptionFactory> */
     use HasFactory, SoftDeletes;
 
     protected $guarded = [];

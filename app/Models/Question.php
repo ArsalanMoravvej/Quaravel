@@ -6,6 +6,7 @@ use App\Enums\QuestionType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -21,10 +22,16 @@ class Question extends Model
         return $this->belongsTo(Survey::class);
     }
 
-    public function text(): HasOne
+    public function options(): hasMany
     {
-        return $this->hasOne(TextAnswer::class);
+        return $this->hasMany(QuestionOption::class);
     }
+
+//    This might be better off with responses Table!!!!
+//    public function text(): hasMany
+//    {
+//        return $this->hasMany(TextAnswer::class);
+//    }
 
     protected $casts = [
         'type' => QuestionType::class,

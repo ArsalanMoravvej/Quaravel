@@ -12,10 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('text_answers', function (Blueprint $table) {
+        Schema::create('question_options', function (Blueprint $table) {
             $table->id();
             $table->foreignIdFor(Question::class)->constrained()->cascadeOnDelete();
-            $table->string('text', 5000)->nullable();
+            $table->string('body');
+            $table->boolean('is_visible');
             $table->softDeletes();
             $table->timestamps();
         });
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('text_answers');
+        Schema::dropIfExists('question_options');
     }
 };

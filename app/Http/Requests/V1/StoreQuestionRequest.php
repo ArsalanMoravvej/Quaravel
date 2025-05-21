@@ -41,6 +41,7 @@ class StoreQuestionRequest extends FormRequest
             QuestionType::MultipleChoice->value => [
                 'options' => ['required', 'array', 'min:2', 'max:50'],
                 'options.*' => ['string', 'min:1'],
+                'randomized' => ['required', 'boolean'],
                 'allow_multiple_select' => ['required', 'boolean'],
                 'min_selectable_choices' => [
                     'required',
@@ -68,6 +69,18 @@ class StoreQuestionRequest extends FormRequest
 
             QuestionType::Rating->value => [
                 'steps' => ['required', 'integer', 'min:2', 'max:10'],
+            ],
+
+            QuestionType::DropDown->value => [
+                'options' => ['required', 'array', 'min:2', 'max:50'],
+                'options.*' => ['string', 'min:1'],
+                'alphabetical_order' => ['required', 'boolean'], //should be opposites
+                'randomized' => ['required', 'boolean'], //should be opposites
+            ],
+
+            QuestionType::Ranking->value => [
+                'options' => ['required', 'array', 'min:2', 'max:50'],
+                'options.*' => ['string', 'min:1']
             ],
 
             default => []

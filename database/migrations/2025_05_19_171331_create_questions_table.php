@@ -17,12 +17,25 @@ return new class extends Migration
             $table->foreignIdFor(Survey::class)->constrained()->cascadeOnDelete();
             $table->string('title', 1500);
             $table->unsignedTinyInteger('type');
+            $table->boolean('answer_required')->default(false);
 
-            $table->integer('min_length')->nullable();
-            $table->integer('max_length')->nullable();
+//            \App\Enums\QuestionType::OpinionScale
+            // For QuestionType::Text
+            $table->integer('answer_min_length')->nullable();
+            $table->integer('answer_max_length')->nullable();
 
-            $table->decimal('min_value', places: 3)->nullable();
-            $table->decimal('max_value', places: 3)->nullable();
+            //For QuestionType::MultipleChoice
+            $table->boolean('allow_multiple_select')->nullable();
+            $table->integer('min_selectable_choices')->nullable();
+            $table->integer('max_selectable_choices')->nullable();
+
+            // For QuestionType::Numeral
+            $table->decimal('number_min_value', places: 3)->nullable();
+            $table->decimal('number_max_value', places: 3)->nullable();
+
+            //For QuestionType::OpinionScale
+            $table->integer('steps')->nullable();
+            $table->boolean('start_from_zero')->nullable();
 
             $table->softDeletes();
             $table->timestamps();

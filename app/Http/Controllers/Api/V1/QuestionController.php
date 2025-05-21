@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\StoreQuestionRequest;
 use App\Http\Requests\V1\UpdateQuestionRequest;
 use App\Models\Question;
+use App\Models\Survey;
 
 class QuestionController extends Controller
 {
@@ -20,9 +21,15 @@ class QuestionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreQuestionRequest $request)
+    public function store(StoreQuestionRequest $request, Survey $survey)
     {
-        dd($request->validated());
+//        $question = $survey->questions()->create(
+//            $request->validated()
+//        );
+        return response()->json(
+            $request->validated()
+//          $question
+        );
     }
 
     /**

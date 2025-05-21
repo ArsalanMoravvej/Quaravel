@@ -17,15 +17,8 @@ enum QuestionType: int
 //    public function label(): string
 //    {
 //        return match ($this) {
-//            self::Text=> 'something',
-//            self::MultipleChoice=> 'something1',
-//            self::Statement=> 'something2',
-//            self::OpinionScale=> 'something3',
-//            self::Rating=> 'something4',
-//            self::Group=> 'something5',
-//            self::DropDown=> 'something6',
-//            self::Ranking=> 'something7',
-//            self::Matrix=> 'something8',
+//            self::Text=> 'some label',
+//            self::MultipleChoice=> 'some label',
 //        };
 //    }
 }

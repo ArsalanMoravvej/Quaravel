@@ -17,6 +17,6 @@ Route::group(['prefix' => 'v1'], function () {
 
     Route::post('/surveys/{survey:public_id}/responders', [ResponderController::class, 'generate']);
 
-    Route::post('/questions', [QuestionController::class, 'store']);
+    Route::post('/surveys/{survey:public_id}/questions', [QuestionController::class, 'store']);
 
 });

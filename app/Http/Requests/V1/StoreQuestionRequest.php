@@ -3,6 +3,7 @@
 namespace App\Http\Requests\V1;
 
 use App\Enums\QuestionType;
+use App\Rules\ChoicesCountLessThanOptionsCount;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
 
@@ -24,31 +25,49 @@ class StoreQuestionRequest extends FormRequest
     public function rules(): array
     {
         $type = $this->input('type');
-
+//        $this->dd($this->input('options', []));
         $baseRules = [
             'type' => ['required', new Enum(QuestionType::class)],
             'title' => ['required', 'string', 'max:255'],
+            'answer_required' => ['sometimes', 'boolean'],
         ];
 
         return array_merge($baseRules, match ($type) {
             QuestionType::Text->value => [
-                'min_length' => ['nullable', 'integer'],
-                'max_length' => ['nullable', 'integer', 'gt:min_length', 'max:5000'],
+                'answer_min_length' => ['required','integer', 'min:0'],
+                'answer_max_length' => ['required', 'integer', 'gte:answer_min_length', 'max:5000'],
             ],
 
             QuestionType::MultipleChoice->value => [
                 'options' => ['required', 'array', 'min:2', 'max:50'],
                 'options.*' => ['string', 'min:1'],
+                'allow_multiple_select' => ['required', 'boolean'],
+                'min_selectable_choices' => [
+                    'required',
+                    'integer',
+                    'min:0',
+                    new ChoicesCountLessThanOptionsCount($this->input('options', []))
+                ],
+                'max_selectable_choices' => [
+                    'required',
+                    'integer',
+                    'gte:min_selectable_choices',
+                    new ChoicesCountLessThanOptionsCount($this->input('options', []))
+                ],
             ],
 
             QuestionType::Numeral->value => [
-                'min_value' => ['required', 'decimal:0,3'],
-                'max_value' => ['required', 'decimal:0,3', 'gt:min_value'],
+                'number_min_value' => ['required', 'decimal:0,3'],
+                'number_max_value' => ['required', 'decimal:0,3', 'gt:number_min_value'],
+            ],
+
+            QuestionType::OpinionScale->value => [
+                'steps' => ['required', 'integer', 'min:3', 'max:11'],
+                'start_from_zero' => ['required', 'bool'],
             ],
 
             QuestionType::Rating->value => [
-                'min_value' => ['required', 'integer'],
-                'max_value' => ['required', 'integer', 'gt:min_value'],
+                'steps' => ['required', 'integer', 'min:2', 'max:10'],
             ],
 
             default => []

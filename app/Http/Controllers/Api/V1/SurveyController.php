@@ -52,7 +52,8 @@ class SurveyController extends Controller
      */
     public function update(UpdateSurveyRequest $request, Survey $survey)
     {
-        //
+        $survey->update($request->validated());
+        return new SurveyResource($survey);
     }
 
     /**

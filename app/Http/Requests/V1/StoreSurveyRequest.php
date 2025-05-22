@@ -11,7 +11,7 @@ class StoreSurveyRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +23,7 @@ class StoreSurveyRequest extends FormRequest
     {
         return [
             "title"    => ["required", "string"],
-            "language" => ["required", "string", "enum" => ["en", "fa"]],
+            "language" => ["sometimes", "string", "in:fa,en"],
             "active"   => ["sometimes", "boolean"],
 
         ];

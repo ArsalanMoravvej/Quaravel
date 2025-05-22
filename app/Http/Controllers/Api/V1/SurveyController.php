@@ -8,6 +8,7 @@ use App\Http\Requests\V1\UpdateSurveyRequest;
 use App\Http\Resources\V1\SurveyCollection;
 use App\Http\Resources\V1\SurveyResource;
 use App\Models\Survey;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
 class SurveyController extends Controller
@@ -25,7 +26,12 @@ class SurveyController extends Controller
      */
     public function store(StoreSurveyRequest $request)
     {
-        //
+        //temp
+        $user = User::first();
+
+        //og logic
+        $survey = $user->surveys()->create($request->validated());
+        return new SurveyResource($survey->refresh());
     }
 
     /**

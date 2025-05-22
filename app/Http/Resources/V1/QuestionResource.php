@@ -29,7 +29,7 @@ class QuestionResource extends JsonResource
             ],
 
             QuestionType::MultipleChoice => [
-                'options' => QuestionOptionResource::collection($this->options),
+                'options' => QuestionOptionResource::collection($this->whenLoaded('options')),
                 'randomized' => $this->randomized,
                 'allow_multiple_select' => $this->allow_multiple_select,
                 'min_selectable_choices' => $this->min_selectable_choices,
@@ -51,13 +51,13 @@ class QuestionResource extends JsonResource
             ],
 
             QuestionType::DropDown->value => [
-                'options' => QuestionOptionResource::collection($this->options),
+                'options' => QuestionOptionResource::collection($this->whenLoaded('options')),
                 'randomized' => $this->randomized,
                 'alphabetical_order' => $this->alphabetical_order,
             ],
 
             QuestionType::Ranking->value => [
-                'options' => QuestionOptionResource::collection($this->options),
+                'options' => QuestionOptionResource::collection($this->whenLoaded('options')),
             ],
 
             default => []

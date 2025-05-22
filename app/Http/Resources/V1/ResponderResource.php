@@ -15,7 +15,7 @@ class ResponderResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'survey' => new SurveyResource($this->survey),
+            'survey' => new SurveyResource($this->whenLoaded('survey')),
             'responder' => [
                 'responder_code'    => $this->public_id,
                 'started_date_time' => $this->created_at,

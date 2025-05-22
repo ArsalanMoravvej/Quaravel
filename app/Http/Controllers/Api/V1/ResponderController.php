@@ -17,7 +17,7 @@ class ResponderController extends Controller
             'type' => 'Normal'
         ]);
 
-        return new ResponderResource($responder);
+        return new ResponderResource($responder->loadMissing("survey.questions.options"));
     }
 
 }

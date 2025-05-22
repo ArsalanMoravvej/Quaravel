@@ -21,7 +21,7 @@ class SurveyResource extends JsonResource
             "title"       => $this->title,
             "language"    => $this->language,
             "active"      => $this->active,
-            "questions"   => QuestionResource::collection(($this->whenLoaded('questions')))
+            "questions"   => QuestionResource::collection($this->whenLoaded('questions'))
         ];
     }
 }

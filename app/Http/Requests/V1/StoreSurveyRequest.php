@@ -22,7 +22,10 @@ class StoreSurveyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            "title"    => ["required", "string"],
+            "language" => ["required", "string", "enum" => ["en", "fa"]],
+            "active"   => ["sometimes", "boolean"],
+
         ];
     }
 }

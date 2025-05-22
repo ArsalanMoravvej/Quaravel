@@ -5,20 +5,23 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\StoreSurveyRequest;
 use App\Http\Requests\V1\UpdateSurveyRequest;
+use App\Http\Resources\V1\SurveyCollection;
+use App\Http\Resources\V1\SurveyResource;
 use App\Models\Survey;
+use Illuminate\Http\JsonResponse;
 
 class SurveyController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the surveys.
      */
-    public function index()
+    public function index(): SurveyCollection
     {
-        return Survey::all();
+        return new SurveyCollection(Survey::all());
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a newly created survey in storage.
      */
     public function store(StoreSurveyRequest $request)
     {
@@ -26,15 +29,20 @@ class SurveyController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified survey.
      */
-    public function show(Survey $survey)
+    public function show(Survey $survey): SurveyResource
     {
-        return $survey;
+        //        Alternatively
+        //        $questions = $survey->questions()->with('options')->get();
+        //        $survey->setRelation('questions', $questions);
+        //        return new SurveyResource($survey);
+
+        return new SurveyResource($survey->loadMissing("questions.options"));
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified survey in storage.
      */
     public function update(UpdateSurveyRequest $request, Survey $survey)
     {
@@ -42,10 +50,11 @@ class SurveyController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified survey from storage.
      */
-    public function destroy(Survey $survey)
+    public function destroy(Survey $survey): JsonResponse
     {
-        //
+        $survey->delete();
+        return response()->json(null, 204);
     }
 }

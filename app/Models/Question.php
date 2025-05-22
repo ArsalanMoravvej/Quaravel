@@ -35,5 +35,8 @@ class Question extends Model
 
     protected $casts = [
         'type' => QuestionType::class,
+        'answer_required' => 'boolean',
+        'randomized' => 'boolean',
+        'allow_multiple_select' => 'boolean',
     ];
 }

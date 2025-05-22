@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\V1;
 
+use App\Models\Question;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -20,6 +21,7 @@ class SurveyResource extends JsonResource
             "title"       => $this->title,
             "language"    => $this->language,
             "active"      => $this->active,
+            "questions"   => QuestionResource::collection(($this->whenLoaded('questions')))
         ];
     }
 }

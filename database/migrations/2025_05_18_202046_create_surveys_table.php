@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('public_id', 8)->unique()->index();
             $table->foreignId('user_id')->constrained('users');
-            $table->string('title');
+            $table->string('title', 50);
             $table->enum('language', ['en', 'fa'])->default('fa');
             $table->boolean('active')->default(false);
             $table->softDeletes();

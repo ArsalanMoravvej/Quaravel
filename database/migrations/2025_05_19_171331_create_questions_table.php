@@ -42,7 +42,7 @@ return new class extends Migration
 
             // Nullables
             $table->boolean('alphabetical_order')->nullable();
-            $table->boolean('answer_required')->nullable()->default(false);
+            $table->boolean('answer_required')->default(false);
             $table->boolean('randomized')->nullable();
 
             $table->softDeletes();

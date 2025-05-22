@@ -40,17 +40,19 @@ class StoreQuestionRequest extends FormRequest
 
             QuestionType::MultipleChoice->value => [
                 'options' => ['required', 'array', 'min:2', 'max:50'],
-                'options.*' => ['string', 'min:1'],
+                'options.*' => ['array'],
+                'options.*.body' => ['required', 'string', 'min:1', 'max:50'],
+                'options.*.is_visible' => ['required', 'boolean'],
                 'randomized' => ['required', 'boolean'],
                 'allow_multiple_select' => ['required', 'boolean'],
                 'min_selectable_choices' => [
-                    'required',
+                    'sometimes',
                     'integer',
                     'min:0',
                     new ChoicesCountLessThanOptionsCount($this->input('options', []))
                 ],
                 'max_selectable_choices' => [
-                    'required',
+                    'sometimes',
                     'integer',
                     'gte:min_selectable_choices',
                     new ChoicesCountLessThanOptionsCount($this->input('options', []))
@@ -73,7 +75,9 @@ class StoreQuestionRequest extends FormRequest
 
             QuestionType::DropDown->value => [
                 'options' => ['required', 'array', 'min:2', 'max:50'],
-                'options.*' => ['string', 'min:1'],
+                'options.*' => ['array'],
+                'options.*.body' => ['required', 'string', 'min:1', 'max:50'],
+                'options.*.is_visible' => ['required', 'boolean'],
                 'alphabetical_order' => ['required', 'boolean'], //should be opposites
                 'randomized' => ['required', 'boolean'], //should be opposites
             ],

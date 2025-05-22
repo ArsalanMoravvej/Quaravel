@@ -32,4 +32,7 @@ class Survey extends Model
     {
         return $this->hasMany(Responder::class);
     }
+    public $casts = [
+        "active" => "boolean",
+    ];
 }

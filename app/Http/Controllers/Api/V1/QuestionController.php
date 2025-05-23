@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Enums\QuestionType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\StoreQuestionRequest;
 use App\Http\Requests\V1\UpdateQuestionRequest;
@@ -17,9 +16,10 @@ class QuestionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Survey $survey)
     {
-        //
+        $questions = $survey->questions->loadMissing('options');
+        return QuestionResource::collection($questions);
     }
 
     /**
@@ -51,34 +51,40 @@ class QuestionController extends Controller
 
             QuestionOption::insert($options);
         }
+
         return new QuestionResource(
             $question
-                ->refresh()
                 ->loadMissing('options')
+                ->refresh()
         );
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Question $question)
+    public function show(Survey $survey, Question $question)
     {
-        //
+        abort_unless($question->survey_id === $survey->id, 404, 'Question is not related to the survey.');
+
+        return new QuestionResource($question->loadMissing('options'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateQuestionRequest $request, Question $question)
+    public function update(UpdateQuestionRequest $request, Survey $survey, Question $question)
     {
-        //
+        abort_unless($question->survey_id === $survey->id, 404, 'Question is not related to the survey.');
+        //TODO
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Question $question)
+    public function destroy(Survey $survey, Question $question)
     {
-        //
+        abort_unless($question->survey_id === $survey->id, 404, 'Question is not related to the survey.');
+        $question->delete();
+        return response(null, 204);
     }
 }

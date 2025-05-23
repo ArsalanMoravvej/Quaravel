@@ -38,5 +38,6 @@ class Question extends Model
         'answer_required' => 'boolean',
         'randomized' => 'boolean',
         'allow_multiple_select' => 'boolean',
+        'alphabetical_order' => 'boolean',
     ];
 }

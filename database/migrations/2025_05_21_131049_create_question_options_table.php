@@ -19,6 +19,7 @@ return new class extends Migration
             $table->boolean('is_visible');
             $table->softDeletes();
             $table->timestamps();
+            $table->unique(['question_id', 'body']);
         });
     }
 

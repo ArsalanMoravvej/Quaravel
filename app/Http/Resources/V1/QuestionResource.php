@@ -17,6 +17,7 @@ class QuestionResource extends JsonResource
     {
         $base = [
             'id' => $this->id,
+            'survey_id' => $this->survey_id,
             'title' => $this->title,
             'type' => $this->type->name,
             'answer_required' => $this->answer_required,
@@ -50,13 +51,13 @@ class QuestionResource extends JsonResource
                 'steps' => $this->steps,
             ],
 
-            QuestionType::DropDown->value => [
+            QuestionType::DropDown => [
                 'options' => QuestionOptionResource::collection($this->whenLoaded('options')),
                 'randomized' => $this->randomized,
                 'alphabetical_order' => $this->alphabetical_order,
             ],
 
-            QuestionType::Ranking->value => [
+            QuestionType::Ranking => [
                 'options' => QuestionOptionResource::collection($this->whenLoaded('options')),
             ],
 

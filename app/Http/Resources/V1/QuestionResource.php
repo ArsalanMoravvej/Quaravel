@@ -33,8 +33,6 @@ class QuestionResource extends JsonResource
                 'options' => QuestionOptionResource::collection($this->whenLoaded('options')),
                 'randomized' => $this->randomized,
                 'allow_multiple_select' => $this->allow_multiple_select,
-                'min_selectable_choices' => $this->min_selectable_choices,
-                'max_selectable_choices' => $this->max_selectable_choices,
             ],
 
             QuestionType::Numeral => [
@@ -63,6 +61,12 @@ class QuestionResource extends JsonResource
 
             default => []
         };
+
+        // Additional Checks
+        if ($this->allow_multiple_select) {
+            $typeSpecific['min_selectable_choices'] = $this->min_selectable_choices;
+            $typeSpecific['max_selectable_choices'] = $this->max_selectable_choices;
+        }
 
         return array_merge($base, $typeSpecific);
     }

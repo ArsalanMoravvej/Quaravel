@@ -9,6 +9,7 @@ use App\Http\Resources\V1\QuestionResource;
 use App\Models\Question;
 use App\Models\QuestionOption;
 use App\Models\Survey;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
 
 class QuestionController extends Controller
@@ -64,8 +65,6 @@ class QuestionController extends Controller
      */
     public function show(Survey $survey, Question $question)
     {
-        abort_unless($question->survey_id === $survey->id, 404, 'Question is not related to the survey.');
-
         return new QuestionResource($question->loadMissing('options'));
     }
 
@@ -74,17 +73,16 @@ class QuestionController extends Controller
      */
     public function update(UpdateQuestionRequest $request, Survey $survey, Question $question)
     {
-        abort_unless($question->survey_id === $survey->id, 404, 'Question is not related to the survey.');
+
         //TODO
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Survey $survey, Question $question)
+    public function destroy(Survey $survey, Question $question): JsonResponse
     {
-        abort_unless($question->survey_id === $survey->id, 404, 'Question is not related to the survey.');
         $question->delete();
-        return response(null, 204);
+        return response()->json(null, 204);
     }
 }

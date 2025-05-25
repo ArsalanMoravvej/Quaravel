@@ -2,12 +2,26 @@
 
 namespace App\Policies;
 
+use App\Exceptions\QuestionDoesNotBelongToSurvey;
 use App\Models\Question;
+use App\Models\Survey;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
 class QuestionPolicy
 {
+    /**
+     * Determine whether the question does belong to the survey.
+     * @throws QuestionDoesNotBelongToSurvey
+     */
+    public function belongsToSurvey(?User $user, Question $question, Survey $survey): bool
+
+    {
+        if ($question->survey_id !== $survey->id) throw new QuestionDoesNotBelongToSurvey;
+
+        return true;
+    }
+
     /**
      * Determine whether the user can view any models.
      */

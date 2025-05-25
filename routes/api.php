@@ -19,9 +19,10 @@ Route::group(['prefix' => 'v1'], function () {
 
     Route::prefix('surveys/{survey}')->controller(QuestionController::class)->group(function () {
         Route::get('/questions', 'index');
-        Route::get('/questions/{question}', 'show');
         Route::post('/questions', 'store');
-        Route::delete('/questions/{question}', 'destroy');
+        Route::get('/questions/{question}', 'show')->middleware('can:belongsToSurvey,question,survey');
+        Route::patch('/questions/{question}', 'update')->middleware('can:belongsToSurvey,question,survey');
+        Route::delete('/questions/{question}', 'destroy')->middleware('can:belongsToSurvey,question,survey');
     });
 
 //    Route::post('/surveys/{survey}/questions', [QuestionController::class, 'store']);

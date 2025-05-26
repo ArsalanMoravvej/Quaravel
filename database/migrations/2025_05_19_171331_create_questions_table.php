@@ -22,6 +22,7 @@ return new class extends Migration
             $table->boolean('alphabetical_order')->default(false);
             $table->boolean('answer_required')->default(false);
             $table->boolean('randomized')->default(false);
+            $table->string('placeholder', 100)->nullable();
 
             // For QuestionType::Text
             $table->integer('answer_min_length')->nullable();
@@ -32,6 +33,7 @@ return new class extends Migration
             $table->integer('max_selectable_choices')->nullable();
 
             // For QuestionType::Numeral
+            $table->boolean('allow_decimals')->default(false);
             $table->decimal('number_min_value', places: 3)->nullable();
             $table->decimal('number_max_value', places: 3)->nullable();
 
@@ -39,8 +41,8 @@ return new class extends Migration
             $table->integer('steps')->nullable();
 
             // For QuestionType::OpinionScale
-            $table->boolean('start_from_zero')->nullable();
-            $table->boolean('negative_scale')->nullable();
+            $table->boolean('start_from_zero')->default(false);
+            $table->boolean('negative_scale')->default(false);
             $table->string('left_label', 40)->nullable();
             $table->string('center_label', 40)->nullable();
             $table->string('right_label', 40)->nullable();

@@ -39,5 +39,8 @@ class Question extends Model
         'randomized' => 'boolean',
         'allow_multiple_select' => 'boolean',
         'alphabetical_order' => 'boolean',
+        'allow_decimals' => 'boolean',
+        'start_from_zero' => 'boolean',
+        'negative_scale' => 'boolean',
     ];
 }

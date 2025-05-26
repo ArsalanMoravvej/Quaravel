@@ -12,7 +12,7 @@ class ChoicesCountLessThanOptionsCount implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if ($value > count($this->options)) {
-            $fail('The :attribute filed must not be greater than the number of options.');
+            $fail('The :attribute field must not be greater than the number of options.');
         }
     }
 }

@@ -21,15 +21,4 @@ enum QuestionType: int
             self::Ranking,
         ]);
     }
-
-    // Group and Matrix and Special Variable & ETC...
-
-
-//    public function label(): string
-//    {
-//        return match ($this) {
-//            self::Text=> 'some label',
-//            self::MultipleChoice=> 'some label',
-//        };
-//    }
 }

@@ -73,8 +73,9 @@ class QuestionResource extends JsonResource
     public function getMultipleChoiceAttributes(): array
     {
         return [
-            'options' => QuestionOptionResource::collection($this->whenLoaded('options')),
+            'options' => $this->getOrderedOptions(),
             'randomized' => $this->randomized,
+            'alphabetical_order' => $this->alphabetical_order,
             'allow_multiple_select' => $this->allow_multiple_select,
         ];
     }
@@ -83,7 +84,7 @@ class QuestionResource extends JsonResource
     public function getNumeralAttributes(): array
     {
         return [
-            'allow_decimals' => $this->when(isset($this->allow_decimals), $this->allow_decimals),
+            'allow_decimals' => $this->allow_decimals ?? false,
             'number_min_value' => when($this->allow_decimals, $this->number_min_value, (int) $this->number_min_value),
             'number_max_value' => when($this->allow_decimals, $this->number_max_value, (int)$this->number_max_value),
         ];
@@ -107,6 +108,7 @@ class QuestionResource extends JsonResource
     {
         return [
             'steps' => $this->steps,
+            'rating_type' => $this->when($this->rating_type, $this->rating_type), // stars, hearts, etc.
         ];
     }
 
@@ -127,6 +129,25 @@ class QuestionResource extends JsonResource
     {
         return [
             'options' => QuestionOptionResource::collection($this->whenLoaded('options')),
+            'allow_ties' => $this->$this->allow_tied,
         ];
+    }
+
+    private function getOrderedOptions()
+    {
+        if (!$this->relationLoaded('options')) {
+            return [];
+        }
+
+        $options = $this->options;
+
+        if ($this->randomized ?? false) {
+            $options = $options->shuffle();
+
+        } elseif ($this->alphabetical_order ?? false) {
+            $options = $options->sortBy('body');
+        }
+
+        return QuestionOptionResource::collection($options);
     }
 }

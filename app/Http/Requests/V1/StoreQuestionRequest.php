@@ -3,6 +3,7 @@
 namespace App\Http\Requests\V1;
 
 use App\Enums\QuestionType;
+use App\Enums\RatingType;
 use App\Rules\ChoicesCountLessThanOptionsCount;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Enum;
@@ -119,6 +120,7 @@ class StoreQuestionRequest extends FormRequest
     {
         return [
             'steps' => ['required', 'integer', 'min:2', 'max:10'],
+            'rating_type' => ['sometimes', new Enum(RatingType::class)],
         ];
     }
 
@@ -139,7 +141,7 @@ class StoreQuestionRequest extends FormRequest
         return array_merge(
             $this->optionsBasedRules(),
             [
-                //
+                'allow_ties' => ['sometimes', 'boolean'],
             ],
         );
     }

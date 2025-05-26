@@ -3,6 +3,7 @@
 use App\Models\Survey;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -47,8 +48,27 @@ return new class extends Migration
             $table->string('center_label', 40)->nullable();
             $table->string('right_label', 40)->nullable();
 
+            //For QuestionType::Rating
+            $table->tinyInteger('rating_type')->default(1);
+
+            //For QuestionType::Ranking
+            $table->boolean('allow_tied')->default(false);
+
             $table->softDeletes();
             $table->timestamps();
+
+            DB::statement(/** @lang text */ '
+            ALTER TABLE questions
+            ADD CONSTRAINT chk_type
+            CHECK (type BETWEEN 1 AND 7)'
+            );
+
+            DB::statement(/** @lang text */ '
+            ALTER TABLE questions
+            ADD CONSTRAINT chk_rating_type
+            CHECK (rating_type BETWEEN 1 AND 3)'
+            );
+
         });
     }
 

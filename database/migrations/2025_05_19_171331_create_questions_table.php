@@ -49,7 +49,7 @@ return new class extends Migration
             $table->string('right_label', 40)->nullable();
 
             //For QuestionType::Rating
-            $table->tinyInteger('rating_type')->default(1);
+            $table->unsignedTinyInteger('rating_type')->default(1)->comment('1=Stars, 2=Hearts ,3=ThumbsUps, 4=PileOfPoo');
 
             //For QuestionType::Ranking
             $table->boolean('allow_tied')->default(false);
@@ -57,19 +57,22 @@ return new class extends Migration
             $table->softDeletes();
             $table->timestamps();
 
-            DB::statement(/** @lang text */ '
+        });
+
+        DB::statement(
+            /** @lang text */ '
             ALTER TABLE questions
             ADD CONSTRAINT chk_type
             CHECK (type BETWEEN 1 AND 7)'
-            );
+        );
 
-            DB::statement(/** @lang text */ '
-            ALTER TABLE questions
+        DB::statement(
+            /** @lang text */
+            'ALTER TABLE questions
             ADD CONSTRAINT chk_rating_type
-            CHECK (rating_type BETWEEN 1 AND 3)'
-            );
+            CHECK (rating_type BETWEEN 1 AND 4)'
+        );
 
-        });
     }
 
     /**

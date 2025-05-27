@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\QuestionType;
+use App\Enums\RatingType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,6 +36,7 @@ class Question extends Model
 
     protected $casts = [
         'type' => QuestionType::class,
+        'rating_type' => RatingType::class,
         'answer_required' => 'boolean',
         'randomized' => 'boolean',
         'allow_multiple_select' => 'boolean',
@@ -42,5 +44,7 @@ class Question extends Model
         'allow_decimals' => 'boolean',
         'start_from_zero' => 'boolean',
         'negative_scale' => 'boolean',
+        'number_min_value' => 'float',
+        'number_max_value' => 'float',
     ];
 }

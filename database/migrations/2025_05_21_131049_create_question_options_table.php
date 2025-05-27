@@ -16,10 +16,13 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Question::class)->constrained()->cascadeOnDelete();
             $table->string('body');
-            $table->boolean('is_visible');
+            $table->boolean('is_active')->default(true);
+            $table->unsignedTinyInteger('order')->default(0);
             $table->softDeletes();
             $table->timestamps();
             $table->unique(['question_id', 'body']);
+            $table->unique(['question_id', 'order']);
+
         });
     }
 

@@ -17,7 +17,7 @@ class QuestionOptionResource extends JsonResource
         return [
             'id' => $this->id,
             'body' => $this->body,
-            'is_visible' => $this->is_visible
+            'is_active' => $this->is_active
         ];
     }
 }

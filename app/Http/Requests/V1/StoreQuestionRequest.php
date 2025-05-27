@@ -10,7 +10,6 @@ use Illuminate\Validation\Rules\Enum;
 
 class StoreQuestionRequest extends FormRequest
 {
-    private QuestionType $type;
     private array $options;
     /**
      * Determine if the user is authorized to make this request.
@@ -28,12 +27,13 @@ class StoreQuestionRequest extends FormRequest
     public function rules(): array
     {
         $type = $this->input('type');
-        $this->type = is_numeric($type) ? QuestionType::tryFrom((int) $type) : null;
+        $type = is_numeric($type) ? QuestionType::tryFrom((int) $type) : null;
+
         $this->options = $this->input('options', []);
 
         return array_merge(
             $this->getBaseAttributes(),
-            $this->getTypeSpecificAttributes($this->type),
+            $this->getTypeSpecificAttributes($type),
             $this->getConditionalAttributes(),
         );
     }
@@ -66,7 +66,7 @@ class StoreQuestionRequest extends FormRequest
     private function getTextAttributes(): array
     {
         return [
-            'answer_min_length' => ['required','integer', 'min:0'],
+            'answer_min_length' => ['required', 'integer', 'lte:answer_max_length', 'min:0'],
             'answer_max_length' => ['required', 'integer', 'gte:answer_min_length', 'max:5000'],
             'placeholder' => ['sometimes', 'string', 'max:100'],
         ];
@@ -78,8 +78,8 @@ class StoreQuestionRequest extends FormRequest
             $this->optionsBasedRules(),
             $this->multipleSelectRules(),
             [
+                // Additional Rules
                 'alphabetical_order' => ['sometimes', 'declined_if:randomized,true', 'boolean'],
-                'randomized' => ['sometimes', 'declined_if:alphabetical_order,true', 'boolean'],
             ]
         );
     }
@@ -129,9 +129,9 @@ class StoreQuestionRequest extends FormRequest
         return array_merge(
             $this->optionsBasedRules(),
             [
+                // Additional Rules
                 'placeholder' => ['sometimes', 'string', 'max:100'],
                 'alphabetical_order' => ['sometimes', 'declined_if:randomized,true', 'boolean'],
-                'randomized' => ['sometimes', 'declined_if:alphabetical_order,true', 'boolean'],
             ]
         );
     }
@@ -141,6 +141,7 @@ class StoreQuestionRequest extends FormRequest
         return array_merge(
             $this->optionsBasedRules(),
             [
+                // Additional Rules
                 'allow_ties' => ['sometimes', 'boolean'],
             ],
         );
@@ -160,7 +161,8 @@ class StoreQuestionRequest extends FormRequest
             'options' => ['required', 'array', 'min:2', 'max:50'],
             'options.*' => ['array'],
             'options.*.body' => ['required', 'string', 'distinct', 'min:1', 'max:50'],
-            'options.*.is_visible' => ['required', 'boolean'],
+            'options.*.is_active' => ['sometimes', 'boolean'],
+            'randomized' => ['sometimes', 'declined_if:alphabetical_order,true', 'boolean'],
         ];
     }
 

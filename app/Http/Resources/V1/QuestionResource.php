@@ -86,7 +86,7 @@ class QuestionResource extends JsonResource
         return [
             'allow_decimals' => $this->allow_decimals ?? false,
             'number_min_value' => when($this->allow_decimals, $this->number_min_value, (int) $this->number_min_value),
-            'number_max_value' => when($this->allow_decimals, $this->number_max_value, (int)$this->number_max_value),
+            'number_max_value' => when($this->allow_decimals, $this->number_max_value, (int) $this->number_max_value),
         ];
     }
 
@@ -96,10 +96,10 @@ class QuestionResource extends JsonResource
         return [
             'steps' => $this->steps,
             'start_from_zero' => $this->start_from_zero,
-            'negative_scale' => $this->negative_scale,
-            'left_label' => $this->when($this->left_label, $this->left_label),
+            'negative_scale'  => $this->negative_scale,
+            'left_label'   => $this->when($this->left_label, $this->left_label),
             'center_label' => $this->when($this->center_label, $this->center_label),
-            'right_label' => $this->when($this->right_label, $this->right_label),
+            'right_label'  => $this->when($this->right_label, $this->right_label),
         ];
     }
 
@@ -108,7 +108,8 @@ class QuestionResource extends JsonResource
     {
         return [
             'steps' => $this->steps,
-            'rating_type' => $this->when($this->rating_type, $this->rating_type), // stars, hearts, etc.
+            'rating_type' => $this->rating_type->value,
+            'rating_type_name' => $this->rating_type->name,
         ];
     }
 

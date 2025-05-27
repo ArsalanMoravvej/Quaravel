@@ -20,6 +20,6 @@ class QuestionOption extends Model
     }
 
     protected $casts = [
-        'is_visible' => 'boolean',
+        'is_active' => 'boolean',
     ];
 }

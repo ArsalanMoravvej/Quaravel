@@ -41,14 +41,20 @@ class QuestionController extends Controller
             // with an insert query for each option and not all at once (because of the timestamps columns) so
             // we try importing the manually by ==> QuestionOption::insert($options); <== with manually adding
             // timestamps and question_id (since it no longer benefits from the eloquent relationship.
-            $now = now();
 
-            $options = array_map(fn($option) => [
-                ...$option,
-                'question_id' => $question->id,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ], $options);
+            $now = now();
+            $options = array_map(
+                fn($option, $index) => [
+                    'body' => $option['body'],
+                    'is_active' => $option['is_active'] ?? true,
+                    'question_id' => $question->id,
+                    'order' => $index,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ],
+                $options,
+                array_keys($options)
+            );
 
             QuestionOption::insert($options);
         }
@@ -63,7 +69,7 @@ class QuestionController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Survey $survey, Question $question)
+    public function show(Survey $survey, Question $question): QuestionResource
     {
         return new QuestionResource($question->loadMissing('options'));
     }
@@ -73,7 +79,7 @@ class QuestionController extends Controller
      */
     public function update(UpdateQuestionRequest $request, Survey $survey, Question $question)
     {
-
+        return response()->json($request->validated());
         //TODO
     }
 

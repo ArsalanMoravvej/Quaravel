@@ -142,7 +142,8 @@ class StoreQuestionRequest extends FormRequest
             $this->optionsBasedRules(),
             [
                 // Additional Rules
-                'allow_ties' => ['sometimes', 'boolean'],
+                'allow_tied' => ['sometimes', 'boolean'],
+                'alphabetical_order' => ['prohibited', 'exclude'],
             ],
         );
     }
@@ -169,10 +170,7 @@ class StoreQuestionRequest extends FormRequest
     private function multipleSelectRules(): array
     {
         return [
-            'allow_multiple_select' => [
-                'boolean',
-                'required_with_all:min_selectable_choices,max_selectable_choices',
-            ],
+            'allow_multiple_select' => ['boolean'],
             'min_selectable_choices' => [
                 'required_if:allow_multiple_select,true',
                 'missing_unless:allow_multiple_select,true',

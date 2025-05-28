@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\StoreQuestionRequest;
 use App\Http\Requests\V1\UpdateQuestionRequest;
+use App\Http\Resources\V1\QuestionOptionResource;
 use App\Http\Resources\V1\QuestionResource;
 use App\Models\Question;
 use App\Models\QuestionOption;
@@ -26,7 +27,7 @@ class QuestionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreQuestionRequest $request, Survey $survey): QuestionResource
+    public function store(StoreQuestionRequest $request, Survey $survey)
     {
         // Later we might ship this to a delegated service.
 
@@ -79,8 +80,21 @@ class QuestionController extends Controller
      */
     public function update(UpdateQuestionRequest $request, Survey $survey, Question $question)
     {
-        return response()->json($request->validated());
-        //TODO
+        $data = $request->validated();
+        $options = Arr::pull($data, 'options'); // grabs and removes 'options' from $data
+
+        if ($question->type->hasOptions() && $options){
+            return $options;
+        }
+
+
+        $question->update($data);
+        return new QuestionResource(
+            $question
+                ->loadMissing('options')
+                ->refresh()
+            );
+
     }
 
     /**

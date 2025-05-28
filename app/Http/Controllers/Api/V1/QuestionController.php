@@ -9,6 +9,7 @@ use App\Http\Resources\V1\QuestionResource;
 use App\Models\Question;
 use App\Models\QuestionOption;
 use App\Models\Survey;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
 
@@ -26,39 +27,24 @@ class QuestionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreQuestionRequest $request, Survey $survey)
+    public function store(StoreQuestionRequest $request, Survey $survey): QuestionResource
     {
         // Later we might ship this to a delegated service.
 
-        $data = $request->validated();
-        $options = Arr::pull($data, 'options'); // grabs and removes 'options' from $data
+        $validatedData = $request->validated();
 
-        $question = $survey->questions()->create($data);
+        // grab and remove 'options' from $validatedData
+        $options = Arr::pull($validatedData, 'options');
 
-        if ($question->type->hasOptions())
-        {
-            // We can use ==> $question->options()->createMany($options); <== but it has a problem of inserting
-            // with an insert query for each option and not all at once (because of the timestamps columns) so
-            // we try importing the manually by ==> QuestionOption::insert($options); <== with manually adding
-            // timestamps and question_id (since it no longer benefits from the eloquent relationship.
+        // Creating the question
+        $question = $survey->questions()->create($validatedData);
 
-            $now = now();
-            $options = array_map(
-                fn($option, $index) => [
-                    'body' => $option['body'],
-                    'is_active' => $option['is_active'] ?? true,
-                    'question_id' => $question->id,
-                    'order' => $index,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ],
-                $options,
-                array_keys($options)
-            );
-
-            QuestionOption::insert($options);
+        // Handling creating the options
+        if ($question->type->hasOptions() && $options) {
+            $this->handleOptionsStore($question->id, $options);
         }
 
+        // Returning Data Resource
         return new QuestionResource(
             $question
                 ->loadMissing('options')
@@ -79,51 +65,19 @@ class QuestionController extends Controller
      */
     public function update(UpdateQuestionRequest $request, Survey $survey, Question $question): QuestionResource
     {
-        $data = $request->validated();
-        $newOptions = Arr::pull($data, 'options'); // grabs and removes 'options' from $data
+        $validatedData = $request->validated();
 
+        // grab and remove 'options' from $validatedData
+        $newOptions = Arr::pull($validatedData, 'options');
+
+        // Updating the question
+        $question->update($validatedData);
+
+        // Handling updating the options
         if ($question->type->hasOptions() && $newOptions){
-
-            $existingOptionIds = Arr::pluck($newOptions, 'id');
-            $existingOptionIds = array_filter($existingOptionIds);
-
-            $currentOptions = $question->options()->get();
-            $currentOptionIds = $currentOptions->pluck('id')->all();
-
-            $idsToDelete = array_diff($currentOptionIds, $existingOptionIds);
-
-            $question->options()
-                ->whereIn('id', $idsToDelete)
-                ->update(['order' => null]);
-
-            $question->options()
-                ->whereIn('id', $idsToDelete)
-                ->delete(); // Soft delete
-
-            $order = 0;
-
-            foreach ($newOptions as $optionData) {
-                $order++;
-
-                // Common fields
-                $optionFields = [
-                    'body' => $optionData['body'],
-                    'is_active' => $optionData['is_active'],
-                    'order' => $order,
-                ];
-
-                if (!empty($optionData['id'])) {
-                    // Update existing
-                    $question->options()->where('id', $optionData['id'])->update($optionFields);
-                } else {
-                    // Create new
-                    $question->options()->create($optionFields);
-                }
-            }
-
+            $this->handleOptionsUpdate($newOptions, $question);
         }
 
-        $question->update($data);
         return new QuestionResource(
             $question
                 ->loadMissing('options')
@@ -139,5 +93,75 @@ class QuestionController extends Controller
     {
         $question->delete();
         return response()->json(null, 204);
+    }
+
+    /**
+     * Helper function for handling storing the options
+     */
+    private function handleOptionsStore(int $question_id, mixed $options): void
+    {
+        // We can use ==> $question->options()->createMany($options); <== but it has a problem of inserting
+        // with an insert query for each option and not all at once (because of the timestamps columns) so
+        // we try importing the manually by ==> QuestionOption::insert($options); <== with manually adding
+        // timestamps and question_id (since it no longer benefits from the eloquent relationship).
+
+        $now = now();
+        $options = array_map(
+            fn($option, $index) => [
+                'body' => $option['body'],
+                'is_active' => $option['is_active'] ?? true,
+                'question_id' => $question_id,
+                'order' => $index,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            $options,
+            array_keys($options)
+        );
+
+        QuestionOption::insert($options);
+    }
+
+    /**
+     * Helper function for handling updating the options
+     */
+    private function handleOptionsUpdate(mixed $newOptions, Question $question): void
+    {
+        $existingOptionIds = Arr::pluck($newOptions, 'id');
+        $existingOptionIds = array_filter($existingOptionIds);
+
+        $currentOptions = $question->options()->get();
+        $currentOptionIds = $currentOptions->pluck('id')->all();
+
+        $idsToDelete = array_diff($currentOptionIds, $existingOptionIds);
+
+        $question->options()
+            ->whereIn('id', $idsToDelete)
+            ->update(['order' => null]);
+
+        $question->options()
+            ->whereIn('id', $idsToDelete)
+            ->delete(); // Soft delete
+
+        $order = 0;
+
+        foreach ($newOptions as $optionData) {
+            $order++;
+
+            // Common fields
+            $optionFields = [
+                'body' => $optionData['body'],
+                'is_active' => $optionData['is_active'],
+                'order' => $order,
+            ];
+
+            if (!empty($optionData['id'])) {
+                // Update existing
+                $question->options()->where('id', $optionData['id'])->update($optionFields);
+            } else {
+                // Create new
+                $question->options()->create($optionFields);
+            }
+        }
     }
 }

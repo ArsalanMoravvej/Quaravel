@@ -6,13 +6,15 @@ use App\Enums\QuestionType;
 use App\Enums\RatingType;
 use App\Models\Question;
 use App\Models\Survey;
-use App\Rules\ChoicesCountLessThanOptionsCount;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\ValidationException;
 
 class UpdateQuestionRequest extends FormRequest
 {
+    private mixed $question;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -29,15 +31,13 @@ class UpdateQuestionRequest extends FormRequest
      */
     public function rules(): array
     {
-        /** @var Question $question */
-        $question = $this->route('question');
-        $type =  $question->type;
+        $this->question = $this->route('question');
 
-        $this->assertQuestionTypeIsUnchanged($type);
+        $this->assertQuestionTypeIsUnchanged();
 
         return array_merge(
             $this->getBaseAttributes(),
-            $this->getTypeSpecificAttributes($type),
+            $this->getTypeSpecificAttributes($this->question->type),
             $this->getConditionalAttributes(),
         );
     }
@@ -70,8 +70,8 @@ class UpdateQuestionRequest extends FormRequest
     private function getTextAttributes(): array
     {
         return [
-            'answer_min_length' => ['required_with:answer_max_length', 'integer', 'min:0'],
-            'answer_max_length' => ['required_with:answer_min_length', 'integer', 'gte:answer_min_length', 'max:5000'],
+            'answer_min_length' => ['sometimes', 'integer', 'min:0'],
+            'answer_max_length' => ['sometimes', 'integer', 'max:5000'],
             'placeholder' => ['sometimes', 'string', 'max:100'],
         ];
     }
@@ -90,19 +90,21 @@ class UpdateQuestionRequest extends FormRequest
 
     private function getNumeralAttributes(): array
     {
-        $allowDecimals = $this->input('allow_decimals');
+        $allowDecimals = filter_var(
+            $this->input('allow_decimals', $this->question->allow_decimals),
+            FILTER_VALIDATE_BOOL
+        );
+
+        $dataType = $allowDecimals ? 'decimal:0,3' : 'integer';
+
         return [
             'allow_decimals' => ['sometimes', 'boolean'],
             'number_min_value' => [
-                'required_with:allow_decimals',
-                $allowDecimals ? 'decimal:0,3' : 'integer',
-                'lt:number_max_value',
+                $dataType,
                 'min:-10000'
             ],
             'number_max_value' => [
-                'required_with:allow_decimals',
-                $allowDecimals ? 'decimal:0,3' : 'integer',
-                'gt:number_min_value',
+                $dataType,
                 'max:10000'
             ],
         ];
@@ -123,7 +125,6 @@ class UpdateQuestionRequest extends FormRequest
     private function getRatingAttributes(): array
     {
         return [
-            // Additional Rules
             'steps' => ['sometimes', 'integer', 'min:2', 'max:10'],
             'rating_type' => ['sometimes', new Enum(RatingType::class)],
         ];
@@ -147,7 +148,7 @@ class UpdateQuestionRequest extends FormRequest
             $this->optionsBasedRules(),
             [
                 // Additional Rules
-                'allow_ties' => ['sometimes', 'boolean'],
+                'allow_tied' => ['sometimes', 'boolean'],
             ],
         );
     }
@@ -165,6 +166,10 @@ class UpdateQuestionRequest extends FormRequest
         return [
             'options' => ['sometimes', 'array', 'min:2', 'max:50'],
             'options.*' => ['array'],
+            'options.*.id' => [
+                'sometimes', 'integer', 'distinct', 'min:1',
+                Rule::exists('question_options', 'id')->where('question_id', $this->question->id),
+                ],
             'options.*.body' => ['required_with:options', 'string', 'distinct', 'min:1', 'max:50'],
             'options.*.is_active' => ['required_with:options', 'boolean'],
             'randomized' => ['sometimes', 'declined_if:alphabetical_order,true', 'boolean'],
@@ -173,29 +178,10 @@ class UpdateQuestionRequest extends FormRequest
 
     private function multipleSelectRules(): array
     {
-        $options = $this->input('options', []);
         return [
-            'allow_multiple_select' => [
-                'boolean',
-                'required_with_all:min_selectable_choices,max_selectable_choices',
-            ],
-            'min_selectable_choices' => [
-                'required_if:allow_multiple_select,true',
-                'missing_unless:allow_multiple_select,true',
-                'exclude_without:max_selectable_choices',
-                'integer',
-                'min:0',
-                'lte:max_selectable_choices',
-                new ChoicesCountLessThanOptionsCount($options),
-            ],
-            'max_selectable_choices' => [
-                'required_if:allow_multiple_select,true',
-                'missing_unless:allow_multiple_select,true',
-                'exclude_without:min_selectable_choices',
-                'integer',
-                'gte:min_selectable_choices',
-                new ChoicesCountLessThanOptionsCount($options),
-            ],
+            'allow_multiple_select' => ['sometimes', 'boolean'],
+            'min_selectable_choices' => ['sometimes', 'integer', 'min:0'],
+            'max_selectable_choices' => ['sometimes', 'integer'],
         ];
     }
 
@@ -203,28 +189,85 @@ class UpdateQuestionRequest extends FormRequest
     {
         return [
             'options.*.body.distinct' => 'Each option must be unique within the question.',
-            'randomized.declined_if' => 'The alphabetical order and randomized fields must not be true at the same time.',
-            'alphabetical_order.declined_if' => 'The alphabetical order and randomized fields must not be true at the same time.',
-            'min_selectable_choices.lte' => 'The min selectable choices field must be less than or equal to max selectable choices.',
-            'max_selectable_choices.gte' => 'The max selectable choices field must be greater than or equal to min selectable choices.',
-            'min_selectable_choices.missing_unless' => 'The min selectable choices field must be missing unless allow multiple select is present and true.',
-            'max_selectable_choices.missing_unless' => 'The max selectable choices field must be missing unless allow multiple select is present and true.'
+            'randomized.declined_if' => 'The “alphabetical” order and “randomized” fields must not be true at the same time.',
+            'alphabetical_order.declined_if' => 'The “alphabetical” order and “randomized” fields must not be true at the same time.',
+            'options.*.body.required_with' => 'option “body” must be present when editing.',
+            'options.*.is_active' => 'option “is_active” state must be present when editing.',
         ];
     }
 
     /**
-     * @param mixed $type
      * @return void
      * @throws ValidationException
      */
-    public function assertQuestionTypeIsUnchanged(mixed $type): void
+    public function assertQuestionTypeIsUnchanged(): void
     {
         $typeInRequest = $this->input('type');
         $typeInRequest = is_numeric($typeInRequest) ? QuestionType::tryFrom((int)$typeInRequest) : null;
-        if ($typeInRequest !== null && $typeInRequest !== $type) throw ValidationException::withMessages([
+        if ($typeInRequest !== null && $typeInRequest !== $this->question->type) throw ValidationException::withMessages([
             'type' => 'The type of the question is immutable. If you need another question type, please consider creating a new question instead.',
         ]);
     }
 
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
 
+                match ($this->question->type) {
+                QuestionType::Text => $this->TextCheck($validator),
+                QuestionType::MultipleChoice => $this->multipleChoiceCheck($validator),
+                QuestionType::Numeral => $this->numeralCheck($validator),
+
+                default => []
+            };
+
+        });
+    }
+
+    /**
+     * @param $validator
+     * @return void
+     */
+    private function multipleChoiceCheck($validator): void
+    {
+        $options =    $this->input('options', $this->question->options->toArray());
+        $minChoices = $this->input('min_selectable_choices', $this->question->min_selectable_choices);
+        $maxChoices = $this->input('max_selectable_choices', $this->question->max_selectable_choices);
+
+        if ($minChoices > $maxChoices) {
+            $validator->errors()->add('min_selectable_choices', 'The min_selectable_choice field must not be greater than the max_selectable_choice field.');
+        }
+
+        if ($minChoices > count($options)) {
+            $validator->errors()->add('min_selectable_choices', 'The min_selectable_choice field must not be greater than the number of options.');
+        }
+
+        if ($maxChoices > count($options)) {
+            $validator->errors()->add('max_selectable_choices', 'The max_selectable_choice field must not be greater than the number of options.');
+        }
+
+    }
+
+    /**
+     * @param $validator
+     * @return void
+     */
+    private function numeralCheck($validator): void
+    {
+        $min = $this->input('number_min_value', $this->question->number_min_value);
+        $max = $this->input('number_max_value', $this->question->number_max_value);
+
+        if ($min > $max) {
+            $validator->errors()->add('number_value', 'The number_min_value must be less than the number_max_value.');
+        }
+    }
+    private function TextCheck($validator): void
+    {
+        $min = $this->input('answer_min_length', $this->question->answer_min_length);
+        $max = $this->input('answer_max_length', $this->question->answer_max_length);
+
+        if ($min > $max) {
+            $validator->errors()->add('number_value', 'The answer_min_length must be less than the answer_max_length.');
+        }
+    }
 }

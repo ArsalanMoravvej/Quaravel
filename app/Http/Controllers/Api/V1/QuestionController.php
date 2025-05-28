@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\V1\StoreQuestionRequest;
 use App\Http\Requests\V1\UpdateQuestionRequest;
-use App\Http\Resources\V1\QuestionOptionResource;
 use App\Http\Resources\V1\QuestionResource;
 use App\Models\Question;
 use App\Models\QuestionOption;
@@ -78,15 +77,51 @@ class QuestionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateQuestionRequest $request, Survey $survey, Question $question)
+    public function update(UpdateQuestionRequest $request, Survey $survey, Question $question): QuestionResource
     {
         $data = $request->validated();
-        $options = Arr::pull($data, 'options'); // grabs and removes 'options' from $data
+        $newOptions = Arr::pull($data, 'options'); // grabs and removes 'options' from $data
 
-        if ($question->type->hasOptions() && $options){
-            return $options;
+        if ($question->type->hasOptions() && $newOptions){
+
+            $existingOptionIds = Arr::pluck($newOptions, 'id');
+            $existingOptionIds = array_filter($existingOptionIds);
+
+            $currentOptions = $question->options()->get();
+            $currentOptionIds = $currentOptions->pluck('id')->all();
+
+            $idsToDelete = array_diff($currentOptionIds, $existingOptionIds);
+
+            $question->options()
+                ->whereIn('id', $idsToDelete)
+                ->update(['order' => null]);
+
+            $question->options()
+                ->whereIn('id', $idsToDelete)
+                ->delete(); // Soft delete
+
+            $order = 0;
+
+            foreach ($newOptions as $optionData) {
+                $order++;
+
+                // Common fields
+                $optionFields = [
+                    'body' => $optionData['body'],
+                    'is_active' => $optionData['is_active'],
+                    'order' => $order,
+                ];
+
+                if (!empty($optionData['id'])) {
+                    // Update existing
+                    $question->options()->where('id', $optionData['id'])->update($optionFields);
+                } else {
+                    // Create new
+                    $question->options()->create($optionFields);
+                }
+            }
+
         }
-
 
         $question->update($data);
         return new QuestionResource(

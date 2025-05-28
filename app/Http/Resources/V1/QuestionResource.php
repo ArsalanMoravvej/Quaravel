@@ -140,7 +140,7 @@ class QuestionResource extends JsonResource
             return [];
         }
 
-        $options = $this->options;
+        $options = $this->options->sortBy('order');
 
         if ($this->randomized ?? false) {
             $options = $options->shuffle();

@@ -42,6 +42,7 @@ class Question extends Model
         'allow_multiple_select' => 'boolean',
         'alphabetical_order' => 'boolean',
         'allow_decimals' => 'boolean',
+        'allow_tied' => 'boolean',
         'start_from_zero' => 'boolean',
         'negative_scale' => 'boolean',
         'number_min_value' => 'float',

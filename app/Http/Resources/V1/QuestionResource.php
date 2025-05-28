@@ -130,7 +130,7 @@ class QuestionResource extends JsonResource
     {
         return [
             'options' => QuestionOptionResource::collection($this->whenLoaded('options')),
-            'allow_ties' => $this->$this->allow_tied,
+            'allow_tied' => $this->allow_tied,
         ];
     }
 

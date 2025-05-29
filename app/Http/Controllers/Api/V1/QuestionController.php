@@ -12,6 +12,7 @@ use App\Models\Survey;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 
 class QuestionController extends Controller
 {
@@ -70,19 +71,21 @@ class QuestionController extends Controller
         // grab and remove 'options' from $validatedData
         $newOptions = Arr::pull($validatedData, 'options');
 
-        // Updating the question
-        $question->update($validatedData);
+        DB::transaction(function () use ($question, $validatedData, $newOptions) {
 
-        // Handling updating the options
-        if ($question->type->hasOptions() && $newOptions){
-            $this->handleOptionsUpdate($newOptions, $question);
-        }
+            // Updating the question
+            $question->update($validatedData);
 
+            // Handling updating the options
+            if ($question->type->hasOptions() && $newOptions){
+                $this->handleOptionsUpdate($newOptions, $question);
+            }
+        });
         return new QuestionResource(
             $question
                 ->loadMissing('options')
                 ->refresh()
-            );
+        );
 
     }
 
@@ -127,26 +130,16 @@ class QuestionController extends Controller
      */
     private function handleOptionsUpdate(mixed $newOptions, Question $question): void
     {
-        $existingOptionIds = Arr::pluck($newOptions, 'id');
-        $existingOptionIds = array_filter($existingOptionIds);
+        $existingOptionIds = array_filter(Arr::pluck($newOptions, 'id'));
 
-        $currentOptions = $question->options()->get();
-        $currentOptionIds = $currentOptions->pluck('id')->all();
+        // Soft delete options not in the new list
+        if (!empty($existingOptionIds)) {
+            $question->options()
+                ->whereNotIn('id', $existingOptionIds)
+                ->delete(); // Soft delete
+        }
 
-        $idsToDelete = array_diff($currentOptionIds, $existingOptionIds);
-
-        $question->options()
-            ->whereIn('id', $idsToDelete)
-            ->update(['order' => null]);
-
-        $question->options()
-            ->whereIn('id', $idsToDelete)
-            ->delete(); // Soft delete
-
-        $order = 0;
-
-        foreach ($newOptions as $optionData) {
-            $order++;
+        foreach ($newOptions as $order => $optionData) {
 
             // Common fields
             $optionFields = [

@@ -15,27 +15,36 @@ use Illuminate\Support\Facades\Route;
 //})->middleware('auth:api');
 
 
+Route::post('/refresh', [Authcontroller::class, 'refresh']);
 Route::post('/register', [Authcontroller::class, 'register']);
 Route::post('/login', [Authcontroller::class, 'login']);
 Route::post('/logout', [Authcontroller::class, 'logout'])->middleware('auth:api');
-Route::post('/refresh', [Authcontroller::class, 'refresh']);
 Route::post('/whoami', [Authcontroller::class, 'whoami'])->middleware('auth:api');
 
 
 
 Route::group(['prefix' => 'v1'], function () {
 
-    Route::apiResource('surveys', SurveyController::class)->middleware('auth:api');
+    Route::controller(SurveyController::class)
+        ->middleware('auth:api')
+        ->group(function () {
+            Route::get('/surveys', 'index');
+            Route::post('/surveys', 'store');
+            Route::get('/surveys/{survey}', 'show')->can('view', 'survey');
+            Route::patch('/surveys/{survey}', 'update')->can('update', 'survey');
+            Route::delete('/surveys/{survey}', 'destroy')->can('delete', 'survey');
+        })
+    ;
 
     Route::prefix('surveys/{survey}')
         ->controller(QuestionController::class)
-        ->middleware('auth:api')
+        ->middleware(['auth:api', 'can:access,survey'])
         ->group(function () {
         Route::get('/questions', 'index');
         Route::post('/questions', 'store');
-        Route::get('/questions/{question}', 'show')->middleware('can:belongsToSurvey,question,survey');
-        Route::patch('/questions/{question}', 'update')->middleware('can:belongsToSurvey,question,survey');
-        Route::delete('/questions/{question}', 'destroy')->middleware('can:belongsToSurvey,question,survey');
+        Route::get('/questions/{question}', 'show');
+        Route::patch('/questions/{question}', 'update');
+        Route::delete('/questions/{question}', 'destroy');
     });
 
 

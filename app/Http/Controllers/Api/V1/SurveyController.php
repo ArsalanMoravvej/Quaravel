@@ -18,18 +18,15 @@ class SurveyController extends Controller
      */
     public function index(): SurveyCollection
     {
-        return new SurveyCollection(Survey::all());
+        return new SurveyCollection(request()->user()->surveys);
     }
 
     /**
      * Store a newly created survey in storage.
      */
-    public function store(StoreSurveyRequest $request)
+    public function store(StoreSurveyRequest $request): SurveyResource
     {
-        //temp
-        $user = User::first();
-
-        //og logic
+        $user = auth()->user();
         $survey = $user->surveys()->create($request->validated());
         return new SurveyResource($survey->refresh());
     }
@@ -39,11 +36,6 @@ class SurveyController extends Controller
      */
     public function show(Survey $survey): SurveyResource
     {
-        //        Alternatively
-        //        $questions = $survey->questions()->with('options')->get();
-        //        $survey->setRelation('questions', $questions);
-        //        return new SurveyResource($survey);
-
         return new SurveyResource($survey->loadMissing("questions.options"));
     }
 

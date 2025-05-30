@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -14,7 +15,7 @@ return new class extends Migration
         Schema::create('surveys', function (Blueprint $table) {
             $table->id();
             $table->string('public_id', 8)->unique()->index();
-            $table->foreignId('user_id')->constrained('users');
+            $table->foreignIdFor(User::class)->constrained()->cascadeOnDelete();
             $table->string('title', 50);
             $table->enum('language', ['en', 'fa'])->default('fa');
             $table->boolean('active')->default(false);

@@ -8,12 +8,9 @@ use Illuminate\Auth\Access\Response;
 
 class SurveyPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
+    public function access(User $user, Survey $survey): bool
     {
-        return false;
+        return $user->id === $survey->user_id;
     }
 
     /**
@@ -21,15 +18,7 @@ class SurveyPolicy
      */
     public function view(User $user, Survey $survey): bool
     {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
-    {
-        return false;
+        return $user->id === $survey->user_id;
     }
 
     /**
@@ -37,7 +26,7 @@ class SurveyPolicy
      */
     public function update(User $user, Survey $survey): bool
     {
-        return false;
+        return $user->id === $survey->user_id;
     }
 
     /**
@@ -45,22 +34,6 @@ class SurveyPolicy
      */
     public function delete(User $user, Survey $survey): bool
     {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Survey $survey): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Survey $survey): bool
-    {
-        return false;
+        return $user->id === $survey->user_id;
     }
 }

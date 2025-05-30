@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class QuestionController extends Controller
 {
@@ -58,6 +59,8 @@ class QuestionController extends Controller
      */
     public function show(Survey $survey, Question $question): QuestionResource
     {
+        Gate::check('questionBelongsToSurvey', [$question, $survey]);
+
         return new QuestionResource($question->loadMissing('options'));
     }
 
@@ -66,6 +69,8 @@ class QuestionController extends Controller
      */
     public function update(UpdateQuestionRequest $request, Survey $survey, Question $question): QuestionResource
     {
+        Gate::authorize('questionBelongsToSurvey', [$question, $survey]);
+
         $validatedData = $request->validated();
 
         // grab and remove 'options' from $validatedData
@@ -81,6 +86,7 @@ class QuestionController extends Controller
                 $this->handleOptionsUpdate($newOptions, $question);
             }
         });
+
         return new QuestionResource(
             $question
                 ->loadMissing('options')
@@ -94,6 +100,8 @@ class QuestionController extends Controller
      */
     public function destroy(Survey $survey, Question $question): JsonResponse
     {
+        Gate::authorize('questionBelongsToSurvey', [$question, $survey]);
+
         $question->delete();
         return response()->json(null, 204);
     }

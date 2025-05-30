@@ -14,8 +14,7 @@ class QuestionPolicy
      * Determine whether the question does belong to the survey.
      * @throws QuestionDoesNotBelongToSurvey
      */
-    public function belongsToSurvey(?User $user, Question $question, Survey $survey): bool
-
+    public function questionBelongsToSurvey(?User $user, Question $question, Survey $survey): bool
     {
         if ($question->survey_id !== $survey->id) throw new QuestionDoesNotBelongToSurvey;
 

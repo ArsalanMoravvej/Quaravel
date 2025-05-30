@@ -140,29 +140,92 @@ class QuestionController extends Controller
     {
         $existingOptionIds = array_filter(Arr::pluck($newOptions, 'id'));
 
-        // Soft delete options not in the new list
+        // Soft delete options not in the new list (One other modification can be done here: to ship soft-deletion
+        // logic into the upsert logic) reducing one delete query execution
+        
         if (!empty($existingOptionIds)) {
             $question->options()
                 ->whereNotIn('id', $existingOptionIds)
                 ->delete(); // Soft delete
         }
 
+        $optionsToUpsert = [];
+
+        // Prepare data for batch operations
         foreach ($newOptions as $order => $optionData) {
+
+            $dateTimeNow = now();
 
             // Common fields
             $optionFields = [
+                'id' => $optionData['id'] ?? null,
                 'body' => $optionData['body'],
                 'is_active' => $optionData['is_active'],
                 'order' => $order,
+                'question_id' => $question->id,
+                'updated_at' => $dateTimeNow,
+                'created_at' => $dateTimeNow
             ];
 
-            if (!empty($optionData['id'])) {
-                // Update existing
-                $question->options()->where('id', $optionData['id'])->update($optionFields);
-            } else {
-                // Create new
-                $question->options()->create($optionFields);
-            }
+            $optionsToUpsert[] = $optionFields;
+
         }
+
+        QuestionOption::upsert(
+            $optionsToUpsert,
+            ['id'],
+            ['body', 'is_active', 'order', 'updated_at']
+        );
+
     }
 }
+
+
+//private function handleOptionsUpdate(mixed $newOptions, Question $question): void
+//{
+//    $existingOptionIds = array_filter(Arr::pluck($newOptions, 'id'));
+//
+//    // Soft delete options not in the new list
+//    if (!empty($existingOptionIds)) {
+//        $question->options()
+//            ->whereNotIn('id', $existingOptionIds)
+//            ->delete(); // Soft delete
+//    }
+//
+//    // Prepare data for batch operations
+//    $optionsToUpdate = [];
+//    $optionsToCreate = [];
+//
+//    foreach ($newOptions as $order => $optionData) {
+//
+//        $dateTimeNow = now();
+//
+//        // Common fields
+//        $optionFields = [
+//            'body' => $optionData['body'],
+//            'is_active' => $optionData['is_active'],
+//            'order' => $order,
+//            'question_id' => $question->id,
+//            'updated_at' => $dateTimeNow,
+//        ];
+//
+//        if (!empty($optionData['id'])) {
+//            // Update existing
+//            $optionFields['id'] = $optionData['id'];
+//            $optionsToUpdate[] = $optionFields;
+//        } else {
+//            // Create new
+//            $optionFields['created_at'] = $dateTimeNow;
+//            $optionsToCreate[] = $optionFields;
+//        }
+//    }
+//    // Bulk update
+//    foreach ($optionsToUpdate as $update) {
+//        QuestionOption::where('id', $update['id'])->update(Arr::except($update, ['id']));
+//    }
+//
+//    // Bulk insert
+//    if (!empty($optionsToCreate)) {
+//        QuestionOption::insert($optionsToCreate);
+//    }
+//}
